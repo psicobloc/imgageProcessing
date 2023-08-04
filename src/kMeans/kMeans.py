@@ -13,13 +13,13 @@ class k_means:
         ratio = 5 # to get the same image set 100; 
         new_width = int(np.shape(self.original_img)[1] * ratio / 100)
         new_height = int(np.shape(self.original_img)[0] * ratio / 100)
-        new_dimentions = (new_width, new_height)
+        self.new_dimentions = (new_width, new_height)
         #todo: make scaling optional with an arg
-        scaled_img = cv.resize(self.original_img, new_dimentions, interpolation = cv.INTER_AREA)
+        scaled_img = cv.resize(self.original_img, self.new_dimentions, interpolation = cv.INTER_AREA)
         print("scaled img shape")
         print(np.shape(scaled_img))
         self.X = np.reshape(scaled_img, ((np.size(scaled_img,0)* np.size(scaled_img,1)),3))
-        self.X = self.X /255
+        #self.X = self.X /255
         print("flattened img shape")
         print(np.shape(self.X))
         # a -3
@@ -66,10 +66,10 @@ class k_means:
         print('start - computeCentroids')
         for iter in range(int(self.k)):
             indicesCentroide = (self.idx == iter).nonzero()[0]
-            print(indicesCentroide)
+            #print(indicesCentroide)
             sumaX = self.X[indicesCentroide,:].sum(axis=0)
-            print("sumaX:")
-            print(sumaX)
+            #print("sumaX:")
+            #print(sumaX)
             cuentaIndices = len(indicesCentroide)
             efe = (1/cuentaIndices)*sumaX
             # ge = efe[0,:,:]
@@ -80,19 +80,64 @@ class k_means:
 
     def run(self):
         for i in range(self.max_iters):
-            print(f"K-means iteration: {i} - max: {self.max_iters}")
+            #print(f"K-means iteration: {i} - max: {self.max_iters}")
             self.findClosestCentroids()
             self.computeCentroids()
 
 def main (args):
     k_means_instance = k_means(args)
     k_means_instance.run()
+    print('run finished')
     centroids = k_means_instance.centroids
     k_means_instance.findClosestCentroids()
-    x_recovered = k_means_instance.centroids[k_means_instance.idx, :]
-    cv.imwrite('recovered.jpg', x_recovered)
+    print('got closest centroids')
+    print(k_means_instance.centroids)
+    print('img')
+    print(k_means_instance.X[0])
+    newImage = repaintImg(k_means_instance.X, k_means_instance.idx, k_means_instance.centroids)
+    #x_recovered = k_means_instance.centroids[k_means_instance.idx, :]
+    # reshape image
+    print('newImg[0]')
+    print(newImage[0])
+    print('new img shape 0')
+    print(np.shape(newImage)[0])
+    print('new img shape 1')
+    print(np.shape(newImage)[1])
+    finishedImg = np.reshape(newImage, (k_means_instance.new_dimentions[0], k_means_instance.new_dimentions[1], 3))
+    print('finishedImg')
+    print(finishedImg)
+    print(finishedImg[0])
+    cv.imwrite('recovered3.jpg', finishedImg)
+
+def repaintImg(flatImg, idx, centroids):
+    newImg = flatImg
+    #newImg = [centroids[idx[np.where(flatImg == pixel)]] for pixel in flatImg] 
+    # for indexCentroid, centroid in enumerate(centroids):
+    #     newImg = [centroids[idx[flatImg.index(pixel)]] for pixel in flatImg]        
+        
+    #     # flatImg[indexCentroid] = centroid
+    for i, centroidIdx in enumerate(idx):
+        # print('centroidIdx')
+        # print(centroidIdx)
+        # print('i')
+        # print(i)
+        # print('centroidIdx[0]')
+        # print(centroidIdx[0])
+        # print('centroids[centroidIdx[0]]')
+        # print(centroids[int(centroidIdx[0])])
+        newImg[i] = centroids[int(centroidIdx[0])]
+
+    
+    return newImg
+
+    
+
+
     
 if __name__ == '__main__':
     args = sys.argv
     # k, img path, max_iters
     main(args)
+
+    #///media/hugo/lentuchon/Documentos/openCV_codigos/imgProcForArt/imgageProcessing/src/kMeans/kMeans.py
+    # python3 kMeans.py 7 ../../resources/stencil/agaveAlto.jpg 10
